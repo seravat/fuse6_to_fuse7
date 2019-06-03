@@ -21,7 +21,6 @@
 
   <modules>
     <module>integration-test-server</module>
-    <module>mq-service</module>
   </modules>
 
 </project>

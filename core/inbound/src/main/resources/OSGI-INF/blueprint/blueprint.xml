@@ -1,52 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:camel="http://camel.apache.org/schema/spring"
-    xmlns:context="http://www.springframework.org/schema/context"
-    xmlns:jaxrs="http://cxf.apache.org/jaxrs"
-    xmlns:osgi="http://www.springframework.org/schema/osgi"
-    xmlns:osgix="http://www.springframework.org/schema/osgi-compendium"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd   http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd   http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd   http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi.xsd   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/osgi-compendium http://www.springframework.org/schema/osgi-compendium/spring-osgi-compendium.xsd">
-    <!-- This reference just lets all of our routes use the same
-  connection pool set up in the mq-service project
-    <osgi:reference id="activemqService" interface="org.apache.camel.Component"/> -->
-    
-    <!-- set property values here so we don't have to recompile to change them -->
-    <osgix:cm-properties id="props" persistent-id="com.customer.activemq">
-        <prop key="broker.url">tcp://127.0.0.1:61616</prop>
-        <prop key="broker.userName">admin</prop>
-        <prop key="broker.passWord">admin</prop>
-        <prop key="broker.maxConnections">10</prop>
-        <prop key="broker.concurrentConsumers">10</prop>
-    </osgix:cm-properties>
-    <context:property-placeholder properties-ref="props"/>
-    <bean class="org.apache.activemq.ActiveMQConnectionFactory" id="jmsConnectionFactory">
-        <property name="brokerURL" value="${broker.url}"/>
-        <property name="userName" value="${broker.userName}"/>
-        <property name="password" value="${broker.passWord}"/>
-    </bean>
-    <bean class="org.apache.activemq.pool.PooledConnectionFactory"
-        destroy-method="stop" id="pooledConnectionFactory" init-method="start">
-        <property name="maxConnections" value="${broker.maxConnections}"/>
-        <property name="connectionFactory" ref="jmsConnectionFactory"/>
-    </bean>
-    <bean class="org.apache.camel.component.jms.JmsConfiguration" id="jmsConfig">
-        <property name="connectionFactory" ref="pooledConnectionFactory"/>
-        <property name="concurrentConsumers" value="${broker.concurrentConsumers}"/>
-    </bean>
-    <bean class="org.apache.activemq.camel.component.ActiveMQComponent" id="activemq">
-        <property name="configuration" ref="jmsConfig"/>
-    </bean>
-    <osgi:service id="activemqService"
-        interface="org.apache.camel.Component" ref="activemq"/>
-    
-    
+<!--
+
+     Copyright 2005-2016 Red Hat, Inc.
+
+     Red Hat licenses this file to you under the Apache License, version
+     2.0 (the "License"); you may not use this file except in compliance
+     with the License.  You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+     implied.  See the License for the specific language governing
+     permissions and limitations under the License.
+
+-->
+<!--
+   This is the OSGi Blueprint XML file defining the CXF JAX-RS beans.  Because the file is in the
+   OSGI-INF/blueprint directory inside our JAR, it will be automatically activated as soon as the artifact is installed.
+
+   The root element for any OSGi Blueprint file is 'blueprint' - you also see the namespace definitions for both the Blueprint
+   and the CXF JAX-RS namespaces.
+-->
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+    xmlns:cxf="http://cxf.apache.org/blueprint/core"
+    xmlns:ext="http://aries.apache.org/blueprint/xmlns/blueprint-ext/v1.5.0"
+    xmlns:jaxrs="http://cxf.apache.org/blueprint/jaxrs"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="       http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd            http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint.xsd            http://www.osgi.org/xmlns/blueprint/v1.0.0 https://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd       http://cxf.apache.org/blueprint/jaxrs http://cxf.apache.org/schemas/blueprint/jaxrs.xsd       http://cxf.apache.org/blueprint/core http://cxf.apache.org/schemas/blueprint/core.xsd">
     <bean class="com.redhat.usecase.service.impl.DEIMServiceImpl" id="demographicImpl"/>
-    <jaxrs:server address="http://localhost:9098/cxf/demos" id="demoGraphicsService">
+    <bean class="org.apache.activemq.camel.component.ActiveMQComponent" id="activemqService">
+        <property name="brokerURL" value="tcp://localhost:61616"/>
+        <property name="userName" value="admin"/>
+        <property name="password" value="admin"/>
+    </bean>
+    <!-- JAXRS providers -->
+    <!--
+      The <jaxrs:server/> element sets up our JAX-RS services.  It defines:
+      - the server's address, '/crm', relative to the default CXF servlet URI
+        with the default settings, the server will be running on 'http://localhost:8181/cxf/crm'
+      - a list of service beans
+        in this example, we refer to another bean defined in this Blueprint XML file with a <ref/> element
+    -->
+    <jaxrs:server address="http://localhost:9098/cxf/demos"
+        id="demoGraphicsService" publish="true">
         <jaxrs:serviceBeans>
-            <ref bean="demographicImpl"/>
+            <ref component-id="demographicImpl"/>
         </jaxrs:serviceBeans>
     </jaxrs:server>
-    <camelContext id="inboundRest" trace="false" xmlns="http://camel.apache.org/schema/spring">
+    <cxf:bus>
+        <cxf:features>
+            <cxf:logging/>
+        </cxf:features>
+        <cxf:properties>
+            <entry key="skip.default.json.provider.registration" value="true"/>
+        </cxf:properties>
+    </cxf:bus>
+    <camelContext id="inboundRest" xmlns="http://camel.apache.org/schema/blueprint">
         <dataFormats>
             <jaxb contextPath="com.customer.app" id="personFormat" partClass="com.customer.app.Person"/>
         </dataFormats>
@@ -97,4 +107,4 @@
             <to id="_toActiveMQ3" uri="activemqService:q.empi.deim.in?disableReplyTo=true&amp;asyncConsumer=true"/>
         </route>
     </camelContext>
-</beans>
+</blueprint>
