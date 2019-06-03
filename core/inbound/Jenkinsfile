@@ -14,10 +14,10 @@ def destApp     = "tasks-green"
 def activeApp   = ""
 
 pipeline {
-  agent {
+  agent none
     // Using the Jenkins Agent Pod that we defined earlier
-    none
-  }
+    
+
   stages {
     // Checkout Source Code and calculate Version Numbers and Tags
     stage('Checkout Source') {
