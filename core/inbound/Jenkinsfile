@@ -16,15 +16,14 @@ def activeApp   = ""
 pipeline {
   agent none
     // Using the Jenkins Agent Pod that we defined earlier
-    
 
   stages {
     // Checkout Source Code and calculate Version Numbers and Tags
     stage('Checkout Source') {
       steps {
         // Get code from protected Git repository - Maybe use service instead of route!!!
-        git 'http://gogs-jtavares-gogs.apps.cluster-bcn.bcn.ocp4.opentlc.com/CICDLabs/openshift-tasks.git'
-        //checkout scm
+        //git 'http://gogs-jtavares-gogs.apps.cluster-bcn.bcn.ocp4.opentlc.com/CICDLabs/openshift-tasks.git'
+        checkout scm
 
        script {
           def pom = readMavenPom file: 'pom.xml'
