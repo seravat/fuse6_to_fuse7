@@ -46,7 +46,6 @@ podTemplate(
 
       //Build project dependency
       stage('Build Jar File') {
-          sh "cd ../artifacts"
 
           sh "cd ../artifacts && ${mvnCmd} clean install -DskipTests"
           sh "cd ../artifacts && ${mvnCmd} deploy -DskipTests -Dmaven.install.skip=true\
