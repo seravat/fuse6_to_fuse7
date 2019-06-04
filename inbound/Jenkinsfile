@@ -47,8 +47,8 @@ podTemplate(
       //Build project dependency
       stage('Build Jar File') {
 
-          sh "cd ../artifacts && ${mvnCmd} clean install -DskipTests"
-          sh "cd ../artifacts && ${mvnCmd} deploy -DskipTests -Dmaven.install.skip=true\
+          sh "cd ../artifacts && mvn -s nexus_openshift_settings.xml clean install -DskipTests"
+          sh "cd ../artifacts && mvn -s nexus_openshift_settings.xml deploy -DskipTests -Dmaven.install.skip=true\
           -DaltDeploymentRepository=nexus::default::http://nexus3-gpte-hw-cicd.apps.na311.openshift.opentlc.com/repository/releases/jtavares"
   
       }
