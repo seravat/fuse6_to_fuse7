@@ -15,20 +15,6 @@
 
   <name>Customer :: Application :: Core :: Artifacts</name>
 
-  <distributionManagement>
-    <repository>
-      <id>nx-releases</id>
-      <name>Nexus Releases</name>
-      <url>http://nexus-nexus.192.168.64.3.nip.io/repository/maven-releases</url>
-      <uniqueVersion>false</uniqueVersion>
-    </repository>
-    <snapshotRepository>
-      <id>nx-snapshots</id>
-      <url>http://nexus-nexus.192.168.64.3.nip.io/repository/maven-snapshots</url>
-      <uniqueVersion>false</uniqueVersion>
-    </snapshotRepository>
-  </distributionManagement>
-
   <build>
     <plugins>
       <plugin>
