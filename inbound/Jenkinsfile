@@ -81,7 +81,7 @@ podTemplate(
             openshift.withCluster() {
               openshift.withProject("jtavares-tasks-dev") {
                   openshift.selector("bc", "inbound").startBuild("--from-file=http://nexus3-gpte-hw-cicd.apps.na311.openshift.opentlc.com/repository/releases/jtavares/com/customer/app/inbound/1.0/inbound-1.0.jar",
-                  "--wait=true")
+                  "--wait=true","-e ARTIFACT_DIR=.")
                   // Tag the image using the devTag.
                   openshift.tag("inbound:latest", "inbound:${devTag}")
               }
