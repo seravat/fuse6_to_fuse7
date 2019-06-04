@@ -44,6 +44,16 @@ podTemplate(
       // Set the tag for the production image: version
       prodTag = "${version}"
 
+      //Build project dependency
+      stage('Build Jar File') {
+          sh "cd ../artifacts"
+
+          sh "${mvnCmd} clean install -DskipTests"
+          sh "${mvnCmd} deploy -DskipTests -Dmaven.install.skip=true\
+          -DaltDeploymentRepository=nexus::default::http://nexus3-gpte-hw-cicd.apps.na311.openshift.opentlc.com/repository/releases/jtavares"
+  
+      }
+
 
       // Using Maven build the jar file
       // Do not run tests in this step
