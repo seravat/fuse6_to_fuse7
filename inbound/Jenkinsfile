@@ -20,8 +20,8 @@ podTemplate(
     containerTemplate(
       name: "jnlp",
       image: "docker-registry.default.svc:5000/jtavares-jenkins/jenkins-agent-maven-35-centos7",
-      resourceRequestMemory: "1Gi",
-      resourceLimitMemory: "2Gi",
+      resourceRequestMemory: "2Gi",
+      resourceLimitMemory: "3Gi",
       resourceRequestCpu: "1",
       resourceLimitCpu: "2"
     )
@@ -71,7 +71,7 @@ podTemplate(
           echo "Publish to Nexus"
 
           sh "${mvnCmd} deploy -DskipTests -Dmaven.install.skip=true\
-          -DaltDeploymentRepository=nexus::default::http://nexus3-jtavares-nexus.apps.cluster-bcn.bcn.ocp4.opentlc.com/repository/releases"
+          -DaltDeploymentRepository=nexus::default::http://nexus3-gpte-hw-cicd.apps.na311.openshift.opentlc.com/repository/releases/jtavares"
 
         }
       }
@@ -85,7 +85,7 @@ podTemplate(
             // Use the Default Cluster
             openshift.withCluster() {
               openshift.withProject("jtavares-tasks-dev") {
-                  openshift.selector("bc", "inbound").startBuild("--from-file=http://nexus3.${prefix}-nexus.svc.cluster.local:8081/repository/releases/com/customer/app/inbound/${devTag}/inbound-${devTag}.jar",
+                  openshift.selector("bc", "inbound").startBuild("--from-file=http://nexus3-gpte-hw-cicd.apps.na311.openshift.opentlc.com/repository/releases/jtavares/com/customer/app/inbound/${devTag}/inbound-${devTag}.jar",
                   "--wait=true")
                   // Tag the image using the devTag.
                   openshift.tag("inbound:latest", "inbound:${devTag}")
