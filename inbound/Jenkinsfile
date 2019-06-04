@@ -19,7 +19,7 @@ podTemplate(
   containers: [
     containerTemplate(
       name: "jnlp",
-      image: "docker-registry.default.svc:5000/jtavares-jenkins/jenkins-agent-maven-35-centos7",
+      image: "docker-registry.default.svc:5000/jtavares-jenkins/jenkins-agent-appdev",
       resourceRequestMemory: "2Gi",
       resourceLimitMemory: "3Gi",
       resourceRequestCpu: "1",
