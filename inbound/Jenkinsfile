@@ -3,7 +3,7 @@ def prefix      = "jtavares"
 
 // Set variable globally to be available in all stages
 // Set Maven command to always include Nexus Settings
-def mvnCmd      = "mvn -s ./nexus_openshift_settings.xml"
+def mvnCmd      = "mvn -s nexus_openshift_settings.xml"
 // Set Development and Production Project Names
 def devProject  = "dev"
 // Set the tag for the development image: version + build number
@@ -45,7 +45,7 @@ pipeline {
       steps {
         echo "Building version ${devTag}"
 
-        sh "mvn clean install -DskipTests -s ./nexus_openshift_settings.xml"
+        sh "${mvnCmd} clean install -DskipTests"
 
       }
     }
@@ -55,7 +55,7 @@ pipeline {
       steps {
         echo "Running Unit Tests"
 
-        sh "mvn clean test -s ./nexus_openshift_settings.xml"
+        sh "${mvnCmd} clean test"
       }
     }
 
@@ -64,7 +64,7 @@ pipeline {
       steps {
         echo "Publish to Nexus"
 
-        sh "mvn deploy -DskipTests -Dmaven.install.skip=true -s ./nexus_openshift_settings.xml \
+        sh "${mvnCmd} deploy -DskipTests -Dmaven.install.skip=true \
         -DaltDeploymentRepository=nexus::default::http://nexus3-jtavares-nexus.apps.cluster-bcn.bcn.ocp4.opentlc.com/repository/releases"
 
       }
