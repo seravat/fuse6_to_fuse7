@@ -27,114 +27,115 @@ podTemplate(
       resourceLimitCpu: "2"
     )
   ]
-)
-node('skopeo-pod') {
+){
+  node('skopeo-pod') {
 
-  // Checkout Source Code.
-  stage('Checkout Source') {
-    checkout scm
-  }
-
-  dir ('inbound'){
-    def pom = readMavenPom file: 'pom.xml'
-    def version = pom.version
-
-    // Set the tag for the development image: version + build number.
-    devTag  = "${version}-${currentBuild.number}"
-
-    // Set the tag for the production image: version
-    prodTag = "${version}"
-
-
-    // Using Maven build the jar file
-    // Do not run tests in this step
-    stage('Build Jar File') {
-      steps {
-        echo "Building version ${devTag}"
-
-        sh "mvn clean install -DskipTests -s ./nexus_openshift_settings.xml"
-
-      }
+    // Checkout Source Code.
+    stage('Checkout Source') {
+      checkout scm
     }
 
-    // Using Maven run the unit tests
-    stage('Unit Tests') {
-      steps {
-        echo "Running Unit Tests"
+    dir ('inbound'){
+      def pom = readMavenPom file: 'pom.xml'
+      def version = pom.version
 
-        sh "mvn clean test -s ./nexus_openshift_settings.xml"
-      }
-    }
+      // Set the tag for the development image: version + build number.
+      devTag  = "${version}-${currentBuild.number}"
 
-    // Publish the built jar file to Nexus
-    stage('Publish to Nexus') {
-      steps {
-        echo "Publish to Nexus"
+      // Set the tag for the production image: version
+      prodTag = "${version}"
 
-        sh "mvn deploy -DskipTests -Dmaven.install.skip=true -s ./nexus_openshift_settings.xml \
-        -DaltDeploymentRepository=nexus::default::http://nexus3-jtavares-nexus.apps.cluster-bcn.bcn.ocp4.opentlc.com/repository/releases"
 
-      }
-    }
+      // Using Maven build the jar file
+      // Do not run tests in this step
+      stage('Build Jar File') {
+        steps {
+          echo "Building version ${devTag}"
 
-    // Build the OpenShift Image in OpenShift and tag it.
-    stage('Build and Tag OpenShift Image') {
-      steps {
-        echo "Building OpenShift container image inbound:${devTag}"
+          sh "mvn clean install -DskipTests -s ./nexus_openshift_settings.xml"
 
-        script {
-          // Use the Default Cluster
-          openshift.withCluster() {
-             openshift.withProject("dev") {
-                openshift.selector("bc", "inbound").startBuild("--from-file=http://nexus3.${prefix}-nexus.svc.cluster.local:8081/repository/releases/com/customer/app/inbound/${devTag}/inbound-${devTag}.jar",
-                 "--wait=true")
-                // Tag the image using the devTag.
-                openshift.tag("inbound:latest", "inbound:${devTag}")
-             }
-          }
         }
       }
-    }
 
-    // Deploy the built image to the Development Environment.
-    stage('Deploy to Dev') {
-      steps {
-        echo "Deploy container image to Development Project"
+      // Using Maven run the unit tests
+      stage('Unit Tests') {
+        steps {
+          echo "Running Unit Tests"
 
-        // TBD: Deploy the image
-        // 1. Update the image on the dev deployment config
-        // 2. Update the config maps with the potentially changed properties files
-       // 3. Reeploy the dev deployment
-       // 4. Wait until the deployment is running
-       //    The following code will accomplish that by
-       //    comparing the requested replicas
-       //    (rc.spec.replicas) with the running replicas
-       //    (rc.status.readyReplicas)
-       //
-        script{
-          openshift.withCluster() {
-            openshift.withProject("dev") {
+          sh "mvn clean test -s ./nexus_openshift_settings.xml"
+        }
+      }
 
-              openshift.set("image", "dc/inbound", "tasks=image-registry.openshift-image-registry.svc:5000/dev/inbound:${devTag}")
+      // Publish the built jar file to Nexus
+      stage('Publish to Nexus') {
+        steps {
+          echo "Publish to Nexus"
 
-              // Deploy the application.
-              openshift.selector("dc", "inbound").rollout().latest();
+          sh "mvn deploy -DskipTests -Dmaven.install.skip=true -s ./nexus_openshift_settings.xml \
+          -DaltDeploymentRepository=nexus::default::http://nexus3-jtavares-nexus.apps.cluster-bcn.bcn.ocp4.opentlc.com/repository/releases"
 
-              def dc = openshift.selector("dc", "inbound").object()
-              def dc_version = dc.status.latestVersion
-              def rc = openshift.selector("rc", "inbound-${dc_version}").object()
+        }
+      }
 
-              echo "Waiting for ReplicationController inbound-${dc_version} to be ready"
-              while (rc.spec.replicas != rc.status.readyReplicas) {
-                sleep 5
-                rc = openshift.selector("rc", "inbound-${dc_version}").object()
+      // Build the OpenShift Image in OpenShift and tag it.
+      stage('Build and Tag OpenShift Image') {
+        steps {
+          echo "Building OpenShift container image inbound:${devTag}"
+
+          script {
+            // Use the Default Cluster
+            openshift.withCluster() {
+              openshift.withProject("dev") {
+                  openshift.selector("bc", "inbound").startBuild("--from-file=http://nexus3.${prefix}-nexus.svc.cluster.local:8081/repository/releases/com/customer/app/inbound/${devTag}/inbound-${devTag}.jar",
+                  "--wait=true")
+                  // Tag the image using the devTag.
+                  openshift.tag("inbound:latest", "inbound:${devTag}")
               }
-
             }
           }
         }
       }
 
+      // Deploy the built image to the Development Environment.
+      stage('Deploy to Dev') {
+        steps {
+          echo "Deploy container image to Development Project"
+
+          // TBD: Deploy the image
+          // 1. Update the image on the dev deployment config
+          // 2. Update the config maps with the potentially changed properties files
+        // 3. Reeploy the dev deployment
+        // 4. Wait until the deployment is running
+        //    The following code will accomplish that by
+        //    comparing the requested replicas
+        //    (rc.spec.replicas) with the running replicas
+        //    (rc.status.readyReplicas)
+        //
+          script{
+            openshift.withCluster() {
+              openshift.withProject("dev") {
+
+                openshift.set("image", "dc/inbound", "tasks=image-registry.openshift-image-registry.svc:5000/dev/inbound:${devTag}")
+
+                // Deploy the application.
+                openshift.selector("dc", "inbound").rollout().latest();
+
+                def dc = openshift.selector("dc", "inbound").object()
+                def dc_version = dc.status.latestVersion
+                def rc = openshift.selector("rc", "inbound-${dc_version}").object()
+
+                echo "Waiting for ReplicationController inbound-${dc_version} to be ready"
+                while (rc.spec.replicas != rc.status.readyReplicas) {
+                  sleep 5
+                  rc = openshift.selector("rc", "inbound-${dc_version}").object()
+                }
+
+              }
+            }
+          }
+        }
+
+      }
     }
   }
 }
