@@ -44,9 +44,9 @@ podTemplate(
       // Set the tag for the production image: version
       prodTag = "${version}"
 
-/*       // Using Maven build the jar file
+      // Using Maven build the jar file
       // Do not run tests in this step
-      stage('Build Jar File') {
+      stage('Build zip File with assembly') {
           echo "Building version ${devTag}"
 
           sh "${mvnCmd} clean install -DskipTests"
@@ -61,7 +61,7 @@ podTemplate(
           sh "${mvnCmd} clean test"
         
       }
-
+/* 
       // Publish the built jar file to Nexus
       stage('Publish to Nexus') {
           echo "Publish to Nexus"
@@ -80,8 +80,8 @@ podTemplate(
             // Use the Default Cluster
             openshift.withCluster() {
               openshift.withProject("jtavares-tasks-dev") {
-                  openshift.selector("bc", "inbound").startBuild("--from-file=http://nexus3-gpte-hw-cicd.apps.na311.openshift.opentlc.com/repository/releases/jtavares/com/customer/app/inbound/1.0/inbound-1.0.zip",
-                  "--wait=true","-e ARTIFACT_DIR=.")
+                  openshift.selector("bc", "inbound").startBuild("--from-file=workspace/target/inbound-1.0.zip",
+                  "--wait=true").environment("ARTIFACT_DIR", ".")
                   // Tag the image using the devTag.
                   openshift.tag("inbound:latest", "inbound:${devTag}")
               }
