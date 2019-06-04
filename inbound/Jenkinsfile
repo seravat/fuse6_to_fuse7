@@ -44,7 +44,7 @@ podTemplate(
       // Set the tag for the production image: version
       prodTag = "${version}"
 
-      // Using Maven build the jar file
+/*       // Using Maven build the jar file
       // Do not run tests in this step
       stage('Build Jar File') {
           echo "Building version ${devTag}"
@@ -70,7 +70,7 @@ podTemplate(
           -DaltDeploymentRepository=nexus::default::http://nexus3-gpte-hw-cicd.apps.na311.openshift.opentlc.com/repository/releases/jtavares"
 
         
-      }
+      } */
 
       // Build the OpenShift Image in OpenShift and tag it.
       stage('Build and Tag OpenShift Image') {
