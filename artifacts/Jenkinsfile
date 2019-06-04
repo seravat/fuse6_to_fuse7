@@ -1,0 +1,54 @@
+#!groovy
+// Set your project Prefix
+def prefix      = "jtavares"
+
+// Set variable globally to be available in all stages
+// Set Maven command to always include Nexus Settings
+def mvnCmd      = "mvn -s nexus_openshift_settings.xml"
+// Set Development and Production Project Names
+def devProject  = "jtavares-tasks-dev"
+// Set the tag for the development image: version + build number
+def devTag      = "0.0-0"
+// Set the tag for the production image: version
+def prodTag     = "0.0"
+
+podTemplate(
+  label: "skopeo-pod",
+  cloud: "openshift",
+  inheritFrom: "maven",
+  containers: [
+    containerTemplate(
+      name: "jnlp",
+      image: "docker-registry.default.svc:5000/jtavares-jenkins/jenkins-agent-appdev",
+      resourceRequestMemory: "2Gi",
+      resourceLimitMemory: "3Gi",
+      resourceRequestCpu: "1",
+      resourceLimitCpu: "2"
+    )
+  ]
+){
+  node('skopeo-pod') {
+
+    // Checkout Source Code.
+    stage('Checkout Source') {
+      checkout scm
+    }
+
+    dir('artifacts'){
+      def pom = readMavenPom file: 'pom.xml'
+      def version = pom.version
+
+      //Build project dependency
+      stage('Build Jar File') {
+
+          sh "${mvnCmd} clean install -DskipTests"
+          sh "${mvnCmd} deploy -DskipTests -Dmaven.install.skip=true\
+          -DaltDeploymentRepository=nexus::default::http://nexus3-gpte-hw-cicd.apps.na311.openshift.opentlc.com/repository/releases/jtavares"
+  
+      }
+
+
+    }
+  }
+}
+
