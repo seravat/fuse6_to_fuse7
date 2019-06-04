@@ -4,15 +4,14 @@ def prefix      = "jtavares"
 
 // Set variable globally to be available in all stages
 // Set Maven command to always include Nexus Settings
-def mvnCmd      = "mvn -s ./nexus_openshift_settings.xml"
+def mvnCmd      = "mvn -s nexus_openshift_settings.xml"
 // Set Development and Production Project Names
-def devProject  = "dev"
+def devProject  = "jtavares-tasks-dev"
 // Set the tag for the development image: version + build number
 def devTag      = "0.0-0"
 // Set the tag for the production image: version
 def prodTag     = "0.0"
-def destApp     = "tasks-green"
-def activeApp   = ""
+
 podTemplate(
   label: "skopeo-pod",
   cloud: "openshift",
@@ -52,7 +51,7 @@ podTemplate(
         steps {
           echo "Building version ${devTag}"
 
-          sh "mvn clean install -DskipTests -s ./nexus_openshift_settings.xml"
+          sh "${mvnCmd} clean install -DskipTests"
 
         }
       }
@@ -62,7 +61,7 @@ podTemplate(
         steps {
           echo "Running Unit Tests"
 
-          sh "mvn clean test -s ./nexus_openshift_settings.xml"
+          sh "${mvnCmd} clean test"
         }
       }
 
@@ -71,7 +70,7 @@ podTemplate(
         steps {
           echo "Publish to Nexus"
 
-          sh "mvn deploy -DskipTests -Dmaven.install.skip=true -s ./nexus_openshift_settings.xml \
+          sh "${mvnCmd} deploy -DskipTests -Dmaven.install.skip=true\
           -DaltDeploymentRepository=nexus::default::http://nexus3-jtavares-nexus.apps.cluster-bcn.bcn.ocp4.opentlc.com/repository/releases"
 
         }
@@ -85,7 +84,7 @@ podTemplate(
           script {
             // Use the Default Cluster
             openshift.withCluster() {
-              openshift.withProject("dev") {
+              openshift.withProject("jtavares-tasks-dev") {
                   openshift.selector("bc", "inbound").startBuild("--from-file=http://nexus3.${prefix}-nexus.svc.cluster.local:8081/repository/releases/com/customer/app/inbound/${devTag}/inbound-${devTag}.jar",
                   "--wait=true")
                   // Tag the image using the devTag.
@@ -113,9 +112,9 @@ podTemplate(
         //
           script{
             openshift.withCluster() {
-              openshift.withProject("dev") {
+              openshift.withProject("jtavares-tasks-dev") {
 
-                openshift.set("image", "dc/inbound", "tasks=image-registry.openshift-image-registry.svc:5000/dev/inbound:${devTag}")
+                openshift.set("image", "dc/inbound", "tasks=image-registry.openshift-image-registry.svc:5000/jtavares-tasks-dev/inbound:${devTag}")
 
                 // Deploy the application.
                 openshift.selector("dc", "inbound").rollout().latest();
