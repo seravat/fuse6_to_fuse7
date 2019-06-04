@@ -48,37 +48,33 @@ podTemplate(
       // Using Maven build the jar file
       // Do not run tests in this step
       stage('Build Jar File') {
-        steps {
           echo "Building version ${devTag}"
 
           sh "${mvnCmd} clean install -DskipTests"
 
-        }
+        
       }
 
       // Using Maven run the unit tests
       stage('Unit Tests') {
-        steps {
           echo "Running Unit Tests"
 
           sh "${mvnCmd} clean test"
-        }
+        
       }
 
       // Publish the built jar file to Nexus
       stage('Publish to Nexus') {
-        steps {
           echo "Publish to Nexus"
 
           sh "${mvnCmd} deploy -DskipTests -Dmaven.install.skip=true\
           -DaltDeploymentRepository=nexus::default::http://nexus3-gpte-hw-cicd.apps.na311.openshift.opentlc.com/repository/releases/jtavares"
 
-        }
+        
       }
 
       // Build the OpenShift Image in OpenShift and tag it.
       stage('Build and Tag OpenShift Image') {
-        steps {
           echo "Building OpenShift container image inbound:${devTag}"
 
           script {
@@ -92,12 +88,11 @@ podTemplate(
               }
             }
           }
-        }
+        
       }
 
       // Deploy the built image to the Development Environment.
       stage('Deploy to Dev') {
-        steps {
           echo "Deploy container image to Development Project"
 
           // TBD: Deploy the image
@@ -132,7 +127,7 @@ podTemplate(
               }
             }
           }
-        }
+        
 
       }
     }
