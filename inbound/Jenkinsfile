@@ -108,7 +108,7 @@ podTemplate(
             openshift.withCluster() {
               openshift.withProject("jtavares-tasks-dev") {
 
-                openshift.set("image", "dc/inbound", "tasks=image-registry.openshift-image-registry.svc:5000/jtavares-tasks-dev/inbound:${devTag}")
+                openshift.set("image", "dc/inbound", "inbound=image-registry.openshift-image-registry.svc:5000/jtavares-tasks-dev/inbound:${devTag}")
 
                 // Deploy the application.
                 openshift.selector("dc", "inbound").rollout().latest();
