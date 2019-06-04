@@ -1,3 +1,4 @@
+#!groovy
 // Set your project Prefix
 def prefix      = "jtavares"
 
@@ -12,32 +13,38 @@ def devTag      = "0.0-0"
 def prodTag     = "0.0"
 def destApp     = "tasks-green"
 def activeApp   = ""
+podTemplate(
+  label: "skopeo-pod",
+  cloud: "openshift",
+  inheritFrom: "maven",
+  containers: [
+    containerTemplate(
+      name: "jnlp",
+      image: "docker-registry.default.svc:5000/cicd/jenkins-agent-maven-35-centos7",
+      resourceRequestMemory: "1Gi",
+      resourceLimitMemory: "2Gi",
+      resourceRequestCpu: "1",
+      resourceLimitCpu: "2"
+    )
+  ]
+)
+node('skopeo-pod') {
 
-pipeline {
-  agent any
-    // Using the Jenkins Agent Pod that we defined earlier
+  // Checkout Source Code.
+  stage('Checkout Source') {
+    checkout scm
+  }
 
-  stages {
-    // Checkout Source Code and calculate Version Numbers and Tags
-    stage('Checkout Source') {
-      steps {
-        // Get code from protected Git repository - Maybe use service instead of route!!!
-        //git 'http://gogs-jtavares-gogs.apps.cluster-bcn.bcn.ocp4.opentlc.com/CICDLabs/openshift-tasks.git'
-        checkout scm
+  dir ('inbound'){
+    def pom = readMavenPom file: 'pom.xml'
+    def version = pom.version
 
-       script {
-          def pom = readMavenPom file: 'pom.xml'
-          def version = pom.version
+    // Set the tag for the development image: version + build number.
+    devTag  = "${version}-${currentBuild.number}"
 
-          // Set the tag for the development image: version + build number.
-          devTag  = "${version}-${currentBuild.number}"
+    // Set the tag for the production image: version
+    prodTag = "${version}"
 
-          // Set the tag for the production image: version
-          prodTag = "${version}"
-
-        }
-      }
-    }
 
     // Using Maven build the jar file
     // Do not run tests in this step
