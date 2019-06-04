@@ -34,22 +34,6 @@ podTemplate(
       checkout scm
     }
 
-    dir('artifacts'){
-      def pom = readMavenPom file: 'pom.xml'
-      def version = pom.version
-
-      //Build project dependency
-      stage('Build Jar File') {
-
-          sh "mvn -s nexus_openshift_settings.xml clean install -DskipTests"
-          sh "mvn -s nexus_openshift_settings.xml deploy -DskipTests -Dmaven.install.skip=true\
-          -DaltDeploymentRepository=nexus::default::http://nexus3-gpte-hw-cicd.apps.na311.openshift.opentlc.com/repository/releases/jtavares"
-  
-      }
-
-
-    }
-
     dir ('inbound'){
       def pom = readMavenPom file: 'pom.xml'
       def version = pom.version
