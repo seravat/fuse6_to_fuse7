@@ -43,7 +43,7 @@ podTemplate(
 
           sh "${mvnCmd} clean install -DskipTests"
           sh "${mvnCmd} deploy -DskipTests -Dmaven.install.skip=true\
-          -DaltDeploymentRepository=nexus::default::http://nexus-nexus.192.168.64.3.nip.io/repository/maven-releases"
+          -DaltDeploymentRepository=nexus::default::http://nexus.nexus.svc:8081/repository/maven-releases"
   
       }
 
