@@ -19,7 +19,7 @@ podTemplate(
   containers: [
     containerTemplate(
       name: "jnlp",
-      image: "docker-registry.default.svc:5000/jtavares-jenkins/jenkins-agent-appdev",
+      image: "172.30.1.1:5000/cicd/jenkins-agent-maven-35-centos7:v3.11",
       resourceRequestMemory: "2Gi",
       resourceLimitMemory: "3Gi",
       resourceRequestCpu: "1",
@@ -43,7 +43,7 @@ podTemplate(
 
           sh "${mvnCmd} clean install -DskipTests"
           sh "${mvnCmd} deploy -DskipTests -Dmaven.install.skip=true\
-          -DaltDeploymentRepository=nexus::default::http://nexus3-gpte-hw-cicd.apps.na311.openshift.opentlc.com/repository/releases/jtavares"
+          -DaltDeploymentRepository=nexus::default::http://nexus-nexus.192.168.64.3.nip.io/repository/maven-releases"
   
       }
 
