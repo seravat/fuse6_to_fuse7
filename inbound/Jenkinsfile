@@ -27,7 +27,7 @@ podTemplate(
     )
   ]
 ){
-  node('maven-appdev') {
+  node('skopeo-pod') {
 
     // Checkout Source Code.
     stage('Checkout Source') {
@@ -67,7 +67,7 @@ podTemplate(
           echo "Publish to Nexus"
 
           sh "${mvnCmd} deploy -DskipTests -Dmaven.install.skip=true\
-          -DaltDeploymentRepository=nexus::default::http://nexus.nexus.svc:8081/repository/maven-releases"
+          -DaltDeploymentRepository=nexus::default::http://nexus3.nexus.svc:8081/repository/maven-releases"
 
         
       }
