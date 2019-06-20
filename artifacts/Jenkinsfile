@@ -27,7 +27,7 @@ podTemplate(
     )
   ]
 ){
-  node('maven-appdev') {
+  node('skopeo-pod') {
 
     // Checkout Source Code.
     stage('Checkout Source') {
