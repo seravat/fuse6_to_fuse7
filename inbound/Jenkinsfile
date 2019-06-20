@@ -82,7 +82,7 @@ podTemplate(
             // Use the Default Cluster
             openshift.withCluster() {
               openshift.withProject("dev") {
-                  openshift.selector("bc", "inbound").startBuild("--from-file=target/inbound-1.0.zip",
+                  openshift.selector("bc", "inbound").startBuild("--from-file=../target/inbound-1.0.zip",
                   "--wait=true").environment("ARTIFACT_DIR", ".")
                   // Tag the image using the devTag.
                   openshift.tag("inbound:latest", "inbound:${devTag}")
