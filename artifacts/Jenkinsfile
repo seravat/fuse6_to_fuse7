@@ -14,7 +14,7 @@ def prodTag     = "0.0"
 
 podTemplate(
   label: "skopeo-pod",
-  namespace: cicd,
+  namespace: "cicd",
   cloud: "openshift",
   inheritFrom: "maven",
   containers: [
